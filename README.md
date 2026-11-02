@@ -13,8 +13,9 @@ How did the change in foreign-born population across Chicago's 77 community area
 - [x] Tract-to-community-area crosswalks built and validated
 - [x] Community-area tables built for both periods, with rebuilt median rent
 - [x] Recent foreign-born arrivals added for both periods (B07007)
-- [ ] Inflation adjustment (2015 rents to 2024 dollars)
-- [ ] Combined 77-row table with change columns
+- [x] Inflation adjustment (2015 rents to 2024 dollars)
+- [x] Cross-check against CMAP for both periods
+- [x] Combined 77-row table with change columns
 - [ ] Maps and charts
 - [ ] Write-up
 
@@ -49,6 +50,7 @@ Possible later additions, kept separate from the core table: DePaul Institute fo
 7. **Recent arrivals.** Foreign-born people who moved from abroad in the past year (B07007_028E), divided by population age 1 and over (B07007_001E). The total moved from abroad (B07007_026E) is not used because it includes U.S.-born people returning home. Variable codes and meanings are identical in both periods.
 8. **Inflation adjustment.** 2011-2015 rents are in 2015 dollars. 2020-2024 rents are in 2024 dollars. 2015 rents are converted to 2024 dollars by multiplying by the ratio of the 2024 to the 2015 annual average of the R-CPI-U-RS, published by the Bureau of Labor Statistics. This is the index the Census Bureau recommends for comparing ACS dollar values, and the one it uses to build them. The 2015 annual average is 348.300 and the 2024 annual average is 462.511, a factor of 1.327910. The factor is computed by `scripts/inflation_factor.py` and saved in `data/processed/inflation_factor.json`.
 9. **Cross-check.** Both tables are checked against the CMAP Community Data Snapshots, downloaded by hand from the CMAP Data Hub: the June 2026 release (ACS 2020-2024) and the 2017 release (ACS 2011-2015). CMAP is a check only, not a data source. All 77 areas match by name in both. City totals are within 0.03% in both periods. 90% of areas are within 0.66% on each count, and within 0.09% on median rent for 2020-2024. The 2017 release has no foreign-born or median rent columns, so 2011-2015 is checked on population and housing units only. Woodlawn runs 10% to 14% high and South Shore about 5% low in both periods. Woodlawn holds tract 17031843900, which is only 89% inside Woodlawn and is assigned whole to it, while CMAP splits it. Because the gap appears in both periods, it affects levels more than change. Fuller Park differs by up to 8.8% on foreign-born in 2020-2024 because it is very small. Use these three areas with care.
+10. **Combined table and change.** The two periods are joined into one 77-row table (`data/processed/ca_combined.csv`). Counts change in number and percent. Shares change in percentage points. Real rent change compares 2024 median rent to 2015 median rent in 2024 dollars. Percent change is left blank where the 2015 value is zero (8 areas with zero recent arrivals in both periods). Two flags travel with the data: `use_with_care` marks Woodlawn, South Shore, and Fuller Park (see Methods 9), and `small_sample` marks areas with fewer than 1,000 renter households in either period: Burnside, Edison Park, Forest Glen, Fuller Park, Hegewisch, and Mount Greenwood. Their rent and cost-burden figures rest on few survey responses and can swing widely. For example, Burnside shows a 38.5% real rent drop on about 450 renter households. These areas are kept, not dropped, so the map has no gaps.
 
 ## How to Reproduce
 
@@ -61,8 +63,9 @@ Possible later additions, kept separate from the core table: DePaul Institute fo
    - `python scripts/build_crosswalk.py`
    - `python scripts/build_ca_tables.py`
    - `python scripts/inflation_factor.py`
+   - `python scripts/build_combined.py`
    - `python scripts/cross_check_cmap.py` (check only; needs `data/raw/cmap_cds_2026_cca.csv` and `data/raw/cmap_cds_2017_cca.csv`, downloaded by hand)
-   
+
 Boundary and tract files are already in `data/raw`. So is the BLS inflation file (`data/raw/r-cpi-u-rs-allitems.xlsx`). BLS blocks scripted downloads, so it was downloaded by hand from https://www.bls.gov/cpi/research-series/r-cpi-u-rs-home.htm.
 
 ## Limitations
