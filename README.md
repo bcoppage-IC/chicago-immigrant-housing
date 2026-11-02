@@ -47,7 +47,7 @@ Possible later additions, kept separate from the core table: DePaul Institute fo
 5. **Cost burden.** Renters paying 30% or more of income on rent, divided by renters for whom burden is computed.
 6. **Median rent.** Medians cannot be added. Each community area's median is rebuilt from rent-range counts (B25063) by linear interpolation within the range holding the middle renter. The rent ranges are identical in both periods. Applied to single tracts, the method reproduces Census-published tract medians to within $1 in nearly all cases.
 7. **Recent arrivals.** Foreign-born people who moved from abroad in the past year (B07007_028E), divided by population age 1 and over (B07007_001E). The total moved from abroad (B07007_026E) is not used because it includes U.S.-born people returning home. Variable codes and meanings are identical in both periods.
-8. **Inflation adjustment.** 2011-2015 rents are in 2015 dollars. 2020-2024 rents are in 2024 dollars. 2015 rents are converted to 2024 dollars by multiplying by the ratio of the 2024 to the 2015 annual average of the R-CPI-U-RS, published by the Bureau of Labor Statistics. This is the index the Census Bureau recommends for comparing ACS dollar values, and the one it uses to build them.
+8. **Inflation adjustment.** 2011-2015 rents are in 2015 dollars. 2020-2024 rents are in 2024 dollars. 2015 rents are converted to 2024 dollars by multiplying by the ratio of the 2024 to the 2015 annual average of the R-CPI-U-RS, published by the Bureau of Labor Statistics. This is the index the Census Bureau recommends for comparing ACS dollar values, and the one it uses to build them. The 2015 annual average is 348.300 and the 2024 annual average is 462.511, a factor of 1.327910. The factor is computed by `scripts/inflation_factor.py` and saved in `data/processed/inflation_factor.json`.
 
 ## How to Reproduce
 
@@ -59,8 +59,9 @@ Possible later additions, kept separate from the core table: DePaul Institute fo
    - `python scripts/pull_recent_arrivals.py`
    - `python scripts/build_crosswalk.py`
    - `python scripts/build_ca_tables.py`
+   - `python scripts/inflation_factor.py`
 
-Boundary and tract files are already in `data/raw`.
+Boundary and tract files are already in `data/raw`. So is the BLS inflation file (`data/raw/r-cpi-u-rs-allitems.xlsx`). BLS blocks scripted downloads, so it was downloaded by hand from https://www.bls.gov/cpi/research-series/r-cpi-u-rs-home.htm.
 
 ## Limitations
 
