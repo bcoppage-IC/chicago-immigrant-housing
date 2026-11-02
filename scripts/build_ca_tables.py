@@ -18,8 +18,9 @@ LOWS = [0, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650,
 HIGHS = LOWS[1:] + [None]                # top range has no upper bound
 BINS = [f"B25063_{i:03d}E" for i in range(3, 27)]
 BURDEN = ["B25070_007E", "B25070_008E", "B25070_009E", "B25070_010E"]  # 30%+
+ARRIVALS = ["B07007_001E", "B07007_028E"]   # age 1+; foreign born moved from abroad
 COUNTS = ["B05002_001E", "B05002_013E", "B25001_001E",
-          "B25070_001E", "B25070_011E"] + BURDEN + BINS
+          "B25070_001E", "B25070_011E"] + BURDEN + BINS + ARRIVALS
 
 
 def median_from_bins(counts):
@@ -49,8 +50,10 @@ def medians(frame):
 def build(year, vintage):
     base = pd.read_csv(RAW / f"acs5_{year}_cook_tracts.csv", dtype={"GEOID": str})
     rent = pd.read_csv(RAW / f"acs5_{year}_cook_tracts_B25063.csv", dtype={"GEOID": str})
+    arr = pd.read_csv(RAW / f"acs5_{year}_cook_tracts_B07007.csv", dtype={"GEOID": str})
     cw = pd.read_csv(OUT / f"crosswalk_tract{vintage}_to_ca.csv", dtype={"GEOID": str})
-    df = cw.merge(base, on="GEOID").merge(rent[["GEOID"] + BINS], on="GEOID")
+    df = (cw.merge(base, on="GEOID").merge(rent[["GEOID"] + BINS], on="GEOID")
+            .merge(arr[["GEOID"] + ARRIVALS], on="GEOID"))
     df[COUNTS] = df[COUNTS].apply(pd.to_numeric, errors="coerce")
     df[COUNTS] = df[COUNTS].where(df[COUNTS] >= 0)   # drop Census missing codes
 
@@ -75,6 +78,9 @@ def build(year, vintage):
     })
     out["fb_share"] = out["foreign_born"] / out["pop"]
     out["burden_share"] = out["cost_burdened"] / out["renters"]
+    out["pop_1plus"] = g["B07007_001E"]
+    out["recent_fb_arrivals"] = g["B07007_028E"]
+    out["recent_arrival_share"] = out["recent_fb_arrivals"] / out["pop_1plus"]
     med, top_ca = medians(g)
     out["median_rent"] = med.round(0)
     out["rent_top_coded"] = top_ca
