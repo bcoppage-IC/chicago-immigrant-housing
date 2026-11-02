@@ -48,6 +48,7 @@ Possible later additions, kept separate from the core table: DePaul Institute fo
 6. **Median rent.** Medians cannot be added. Each community area's median is rebuilt from rent-range counts (B25063) by linear interpolation within the range holding the middle renter. The rent ranges are identical in both periods. Applied to single tracts, the method reproduces Census-published tract medians to within $1 in nearly all cases.
 7. **Recent arrivals.** Foreign-born people who moved from abroad in the past year (B07007_028E), divided by population age 1 and over (B07007_001E). The total moved from abroad (B07007_026E) is not used because it includes U.S.-born people returning home. Variable codes and meanings are identical in both periods.
 8. **Inflation adjustment.** 2011-2015 rents are in 2015 dollars. 2020-2024 rents are in 2024 dollars. 2015 rents are converted to 2024 dollars by multiplying by the ratio of the 2024 to the 2015 annual average of the R-CPI-U-RS, published by the Bureau of Labor Statistics. This is the index the Census Bureau recommends for comparing ACS dollar values, and the one it uses to build them. The 2015 annual average is 348.300 and the 2024 annual average is 462.511, a factor of 1.327910. The factor is computed by `scripts/inflation_factor.py` and saved in `data/processed/inflation_factor.json`.
+9. **Cross-check.** The 2020-2024 table is checked against the CMAP Community Data Snapshots (June 2026 release, ACS 2020-2024), downloaded by hand from the CMAP Data Hub. CMAP is a check only, not a data source. All 77 areas match by name. City totals for population, foreign-born, and housing units are within 0.03%. 90% of areas are within 0.65% on each count and within 0.09% on median rent. Three areas differ by more than 5%: Woodlawn (up to 13.8% higher), South Shore (up to 5.6% lower), and Fuller Park (up to 8.8% lower on foreign-born). Woodlawn holds tract 17031843900, which is only 89% inside Woodlawn and is assigned whole to it, while CMAP splits it. Fuller Park is very small, so small count differences show as large percentages. Use these three areas with care.
 
 ## How to Reproduce
 
@@ -60,6 +61,7 @@ Possible later additions, kept separate from the core table: DePaul Institute fo
    - `python scripts/build_crosswalk.py`
    - `python scripts/build_ca_tables.py`
    - `python scripts/inflation_factor.py`
+   - `python scripts/cross_check_cmap.py` (check only; needs `data/raw/cmap_cds_2026_cca.csv`, downloaded by hand)
 
 Boundary and tract files are already in `data/raw`. So is the BLS inflation file (`data/raw/r-cpi-u-rs-allitems.xlsx`). BLS blocks scripted downloads, so it was downloaded by hand from https://www.bls.gov/cpi/research-series/r-cpi-u-rs-home.htm.
 
