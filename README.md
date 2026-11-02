@@ -16,8 +16,25 @@ How did the change in foreign-born population across Chicago's 77 community area
 - [x] Inflation adjustment (2015 rents to 2024 dollars)
 - [x] Cross-check against CMAP for both periods
 - [x] Combined 77-row table with change columns
-- [ ] Maps and charts
+- [x] First map (foreign-born share change) and scatter plot (foreign-born change vs. rent change)
+- [x] Findings log with data checks and press sources
+- [ ] Margins of error for key counts
+- [ ] Remaining maps and charts
 - [ ] Write-up
+
+## Early Findings
+
+Full notes, data checks, and press sources: [`notes/findings.md`](notes/findings.md).
+
+![Change in foreign-born share by community area](outputs/map_fb_share_change.png)
+
+![Foreign-born share change vs. real rent change](outputs/scatter_fb_vs_rent.png)
+
+- Areas where the foreign-born share fell tended to see larger real rent increases: r = -0.37 across 69 unflagged areas, or -0.28 without Avondale.
+- Avondale, Logan Square, and the Lower West Side lost about 11,000 foreign-born residents combined. Real rents there rose 23% to 32%, against a 6.3% city median. Local press names these three areas as the city's top areas for Latino population loss.
+- Foreign-born growth was largest in lower-cost areas. West Englewood rose from 2.6% to 13.6% foreign-born. Its 2020-2024 figures match CMAP exactly.
+- Recent arrivals from abroad drove the gains in Humboldt Park and O'Hare. Gains in West Englewood and Clearing came mostly from immigrants already living in the U.S.
+- These are links, not causes. See Limitations.
 
 ## Data Sources
 
@@ -51,6 +68,7 @@ Possible later additions, kept separate from the core table: DePaul Institute fo
 8. **Inflation adjustment.** 2011-2015 rents are in 2015 dollars. 2020-2024 rents are in 2024 dollars. 2015 rents are converted to 2024 dollars by multiplying by the ratio of the 2024 to the 2015 annual average of the R-CPI-U-RS, published by the Bureau of Labor Statistics. This is the index the Census Bureau recommends for comparing ACS dollar values, and the one it uses to build them. The 2015 annual average is 348.300 and the 2024 annual average is 462.511, a factor of 1.327910. The factor is computed by `scripts/inflation_factor.py` and saved in `data/processed/inflation_factor.json`.
 9. **Cross-check.** Both tables are checked against the CMAP Community Data Snapshots, downloaded by hand from the CMAP Data Hub: the June 2026 release (ACS 2020-2024) and the 2017 release (ACS 2011-2015). CMAP is a check only, not a data source. All 77 areas match by name in both. City totals are within 0.03% in both periods. 90% of areas are within 0.66% on each count, and within 0.09% on median rent for 2020-2024. The 2017 release has no foreign-born or median rent columns, so 2011-2015 is checked on population and housing units only. Woodlawn runs 10% to 14% high and South Shore about 5% low in both periods. Woodlawn holds tract 17031843900, which is only 89% inside Woodlawn and is assigned whole to it, while CMAP splits it. Because the gap appears in both periods, it affects levels more than change. Fuller Park differs by up to 8.8% on foreign-born in 2020-2024 because it is very small. Use these three areas with care.
 10. **Combined table and change.** The two periods are joined into one 77-row table (`data/processed/ca_combined.csv`). Counts change in number and percent. Shares change in percentage points. Real rent change compares 2024 median rent to 2015 median rent in 2024 dollars. Percent change is left blank where the 2015 value is zero (8 areas with zero recent arrivals in both periods). Two flags travel with the data: `use_with_care` marks Woodlawn, South Shore, and Fuller Park (see Methods 9), and `small_sample` marks areas with fewer than 1,000 renter households in either period: Burnside, Edison Park, Forest Glen, Fuller Park, Hegewisch, and Mount Greenwood. Their rent and cost-burden figures rest on few survey responses and can swing widely. For example, Burnside shows a 38.5% real rent drop on about 450 renter households. These areas are kept, not dropped, so the map has no gaps.
+11. **Visuals.** The map shows change in foreign-born share in percentage points, on a color scale centered at zero. Areas flagged `use_with_care` or `small_sample` are hatched. The scatter plot compares change in foreign-born share with percent change in real median rent. Points are hollow for flagged areas and for areas with top-coded rent in either period. The trend line and correlation (r) use solid points only. The correlation was also checked without Avondale, the largest outlier.
 
 ## How to Reproduce
 
@@ -65,6 +83,8 @@ Possible later additions, kept separate from the core table: DePaul Institute fo
    - `python scripts/inflation_factor.py`
    - `python scripts/build_combined.py`
    - `python scripts/cross_check_cmap.py` (check only; needs `data/raw/cmap_cds_2026_cca.csv` and `data/raw/cmap_cds_2017_cca.csv`, downloaded by hand)
+   - `python scripts/make_map.py`
+   - `python scripts/make_scatter.py`
 
 Boundary and tract files are already in `data/raw`. So is the BLS inflation file (`data/raw/r-cpi-u-rs-allitems.xlsx`). BLS blocks scripted downloads, so it was downloaded by hand from https://www.bls.gov/cpi/research-series/r-cpi-u-rs-home.htm.
 
@@ -74,6 +94,7 @@ Boundary and tract files are already in `data/raw`. So is the BLS inflation file
 - **Area-level data only.** Patterns across community areas may not apply to individual households.
 - **Survey error.** ACS figures are estimates with margins of error. Smaller community areas have wider margins. Interpolated medians do not have exact margins.
 - **Foreign-born is not the same as recent arrivals.** The foreign-born measure includes people who arrived decades ago. The recent-arrivals measure covers only the past year and rests on small counts, so its margins of error are wide. Some community areas show zero.
+- **Foreign-born is not the same as Latino.** Press coverage of displacement usually counts Latino residents, many of whom are U.S.-born. People born in Puerto Rico count as native-born in the ACS, so their moves do not show up in the foreign-born measure.
 - **Pooled years.** Each 5-year estimate covers five years of surveys. 2020-2024 centers on about 2022 and only partly reflects the 2022 to 2024 migrant arrivals.
 - **Recent arrivals likely undercounted in 2020-2024.** The period includes 2020 and 2021, when international travel was low. Migrants housed in shelters from 2022 on may also be undercounted.
 - **Inflation index.** The R-CPI-U-RS is a national, all-items index. It does not reflect Chicago prices or housing costs on their own. "Real" rent change means rent change compared to overall U.S. prices.
@@ -86,8 +107,9 @@ Boundary and tract files are already in `data/raw`. So is the BLS inflation file
 data/
   raw/          Original downloads, unedited
   processed/    Crosswalks and community-area tables
-scripts/        Download and processing code
-outputs/        Maps and charts (coming)
+scripts/        Download, processing, and chart code
+outputs/        Maps and charts
+notes/          Findings log and press sources
 ```
 
 Raw and processed data are kept separate so every result can be reproduced from the original downloads.
