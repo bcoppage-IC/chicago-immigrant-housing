@@ -73,7 +73,7 @@ Possible later additions, kept separate from the core table: DePaul Institute fo
 ## How to Reproduce
 
 1. Install Python 3 and the packages: `pip install -r requirements.txt`
-2. Get a free Census API key at https://api.census.gov/data/key_signup.html and set it as the environment variable `CENSUS_API_KEY`.
+2. Get a free Census API key at https://api.census.gov/data/key_signup.html. Copy `.env.example` to `.env` in the project root and set `CENSUS_API_KEY=your-key`. The `.env` file is ignored by git, so the key stays out of the repo.
 3. Run the scripts in order:
    - `python scripts/pull_acs.py`
    - `python scripts/pull_rent_ranges.py`
