@@ -74,7 +74,7 @@ Possible later additions, kept separate from the core table: DePaul Institute fo
 
 1. Install Python 3 and the packages: `pip install -r requirements.txt`
 2. Get a free Census API key at https://api.census.gov/data/key_signup.html and set it as the environment variable `CENSUS_API_KEY`.
-3. Run the scripts in order:
+3. Run the whole pipeline with one command: `python run_all.py`. It runs each script below in order, waits for each to finish, and stops if one fails. It skips the CMAP check if those files are missing. To run the scripts one at a time instead, use this order:
    - `python scripts/pull_acs.py`
    - `python scripts/pull_rent_ranges.py`
    - `python scripts/pull_recent_arrivals.py`
