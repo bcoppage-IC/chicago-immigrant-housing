@@ -2,16 +2,18 @@
 
 Saves one CSV per period to data/raw.
 """
-import os
 from pathlib import Path
 
 import pandas as pd
 import requests
 
+from config import census_api_key
+
 YEARS = [2015, 2024]   # end year of each 5-year period
 STATE = "17"           # Illinois
 COUNTY = "031"         # Cook County
 OUT_DIR = Path("data/raw")
+KEY = census_api_key()
 
 VARIABLES = [
     "B05002_001E", "B05002_013E",                 # total population, foreign born
@@ -31,12 +33,19 @@ def pull(year):
         "get": "NAME," + ",".join(COLUMNS),
         "for": "tract:*",
         "in": f"state:{STATE} county:{COUNTY}",
+        "key": KEY,
     }
-    key = os.environ.get("CENSUS_API_KEY")
-    if key:
-        params["key"] = key
     response = requests.get(url, params=params, timeout=60)
     response.raise_for_status()
+    # The Census API returns an HTML page with status 200 for key problems
+    # (e.g. "Missing Key", "Invalid Key"), so check before parsing JSON.
+    if "json" not in response.headers.get("content-type", ""):
+        snippet = response.text[:500]
+        title = snippet.split("<title>")[1].split("</title>")[0] if "<title>" in snippet else snippet
+        raise SystemExit(
+            f"Census API did not return data for {year}: {title.strip()}\n"
+            "Check CENSUS_API_KEY in your .env file."
+        )
     rows = response.json()
     df = pd.DataFrame(rows[1:], columns=rows[0])
     df["GEOID"] = df["state"] + df["county"] + df["tract"]

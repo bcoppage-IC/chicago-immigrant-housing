@@ -4,18 +4,19 @@ Used for the recent-arrivals measure: people who moved from abroad in the past y
 Saves one data file and one label file per period to data/raw.
 """
 import json
-import os
 from pathlib import Path
 
 import pandas as pd
 import requests
+
+from config import census_api_key
 
 YEARS = [2015, 2024]   # end year of each 5-year period
 STATE = "17"           # Illinois
 COUNTY = "031"         # Cook County
 TABLE = "B07007"
 OUT_DIR = Path("data/raw")
-KEY = os.environ.get("CENSUS_API_KEY")
+KEY = census_api_key()
 
 
 def pull(year):
@@ -24,9 +25,8 @@ def pull(year):
         "get": f"NAME,group({TABLE})",
         "for": "tract:*",
         "in": f"state:{STATE} county:{COUNTY}",
+        "key": KEY,
     }
-    if KEY:
-        params["key"] = KEY
     r = requests.get(url, params=params, timeout=120)
     r.raise_for_status()
     rows = r.json()
