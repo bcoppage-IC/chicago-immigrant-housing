@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chicago Immigrant Settlement & Housing Investment Brief</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+  <!-- Executive Header -->
+  <header class="bg-slate-900 text-white border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <span class="inline-block px-2.5 py-0.5 rounded text-xs font-semibold tracking-wider uppercase bg-teal-500/20 text-teal-300 mb-2">
+            Management Consulting Case Brief • ACS 2015 vs. 2024
+          </span>
+          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">
+            Capitalizing on Secondary Settlement Corridors in Chicago
+          </h1>
+          <p class="mt-1 text-slate-300 text-sm max-w-3xl">
+            Identifying undervalued multifamily acquisition targets across Chicago's 77 community areas as steep rent appreciation displaces immigrant households from traditional Northwest Side gateways.
+          </p>
+        </div>
+        <div class="text-xs text-slate-400 shrink-0">
+          <div>Author: <span class="text-white font-medium">Ben Coppage</span></div>
+          <div>Data: <span class="text-white font-medium">U.S. Census ACS 5-Year & BLS R-CPI-U-RS</span></div>
+        </div>
+      </div>
+
+      <!-- Act I: Top KPI Banner -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+        <div class="bg-slate-800/80 border border-slate-700 rounded-lg p-4">
+          <div class="text-xs font-medium text-slate-400 uppercase">FB Share vs. Rent Correlation</div>
+          <div class="text-2xl font-bold text-teal-400 mt-1">r = -0.37</div>
+          <div class="text-xs text-slate-300 mt-1">Statistically significant (p ≈ 0.002) across 69 unflagged areas</div>
+        </div>
+        <div class="bg-slate-800/80 border border-slate-700 rounded-lg p-4">
+          <div class="text-xs font-medium text-slate-400 uppercase">Core Gateway Outflow</div>
+          <div class="text-2xl font-bold text-rose-400 mt-1">-10,977</div>
+          <div class="text-xs text-slate-300 mt-1">Foreign-born residents lost across Avondale, Logan Sq & Pilsen</div>
+        </div>
+        <div class="bg-slate-800/80 border border-slate-700 rounded-lg p-4">
+          <div class="text-xs font-medium text-slate-400 uppercase">Gateway Real Rent Surge</div>
+          <div class="text-2xl font-bold text-amber-400 mt-1">+23.5% to +31.8%</div>
+          <div class="text-xs text-slate-300 mt-1">4x to 5x faster than the +6.31% Chicago median</div>
+        </div>
+        <div class="bg-slate-800/80 border border-slate-700 rounded-lg p-4">
+          <div class="text-xs font-medium text-slate-400 uppercase">Top Growth Corridors</div>
+          <div class="text-2xl font-bold text-indigo-400 mt-1">+10,106</div>
+          <div class="text-xs text-slate-300 mt-1">Combined FB gains in Humboldt Pk, W. Englewood, O'Hare & Clearing</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- Act II & III Controls: Live Deal-Sourcing Simulator -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-100 pb-4 mb-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Live Submarket Investment Scoring Simulator</h2>
+          <p class="text-xs text-slate-500">Adjust underwriting weights and data hygiene filters to re-rank Chicago's 77 community areas in real time.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-4">
+          <label class="inline-flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-100 px-3 py-2 rounded-lg">
+            <input id="toggle-flagged" type="checkbox" checked class="rounded text-teal-600 focus:ring-teal-500" />
+            Exclude 9 Flagged Areas (Split Tracts & <1,000 Renters)
+          </label>
+          <select id="filter-segment" class="text-xs font-medium text-slate-700 bg-slate-100 border-0 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500">
+            <option value="ALL">All Settlement Archetypes</option>
+            <option value="Direct-Arrival Hub">Direct-Arrival Hubs (International Inflow)</option>
+            <option value="Domestic-Migration Corridor">Domestic-Migration Corridors (U.S. Relocation)</option>
+            <option value="Displacement Gateway">Displacement Gateways (High Rent Outflow)</option>
+            <option value="Stable / Other">Stable / Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Priority Weight Sliders -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+          <div class="flex justify-between text-xs font-semibold mb-2">
+            <span class="text-slate-700">Foreign-Born Share Growth</span>
+            <span id="val-growth" class="text-teal-700 font-mono">50%</span>
+          </div>
+          <input id="weight-growth" type="range" min="0" max="100" value="50" class="w-full accent-teal-600 cursor-pointer" />
+          <p class="text-[11px] text-slate-500 mt-1">Prioritizes rapid demographic inflow and tenant demand velocity.</p>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+          <div class="flex justify-between text-xs font-semibold mb-2">
+            <span class="text-slate-700">Real Rent Headroom</span>
+            <span id="val-rent" class="text-teal-700 font-mono">30%</span>
+          </div>
+          <input id="weight-rent" type="range" min="0" max="100" value="30" class="w-full accent-teal-600 cursor-pointer" />
+          <p class="text-[11px] text-slate-500 mt-1">Rewards neighborhoods with low 2015–2024 rent inflation before peak pricing.</p>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+          <div class="flex justify-between text-xs font-semibold mb-2">
+            <span class="text-slate-700">Tenant Affordability Ceiling</span>
+            <span id="val-burden" class="text-teal-700 font-mono">20%</span>
+          </div>
+          <input id="weight-burden" type="range" min="0" max="100" value="20" class="w-full accent-teal-600 cursor-pointer" />
+          <p class="text-[11px] text-slate-500 mt-1">Favors areas with lower cost-burdened renter shares (<30% income on rent).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visual Analytics Grid: Map + Scatter -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Left: Choropleth Map -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Spatial Opportunity Map (77 Community Areas)</h3>
+            <p class="text-xs text-slate-500">Click any community area to inspect underlying ACS metrics.</p>
+          </div>
+          <div class="flex items-center gap-2 text-[11px] font-medium">
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-teal-700"></span>70+</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>55+</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>40+</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span><40</span>
+          </div>
+        </div>
+        <div id="chicago-map" class="w-full h-[380px] rounded-lg border border-slate-200 z-0"></div>
+      </div>
+
+      <!-- Right: Scatter Plot -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col">
+        <div class="mb-3">
+          <h3 class="text-base font-bold text-slate-900">Settlement Shift vs. Real Rent Growth</h3>
+          <p class="text-xs text-slate-500">Bubble size reflects net foreign-born population change (2015–2024). Click a bubble to inspect.</p>
+        </div>
+        <div class="relative w-full h-[380px]">
+          <canvas id="scatter-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Selected Neighborhood Spotlight -->
+    <section id="area-spotlight" class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+      <div class="text-xs text-slate-500 text-center py-2">
+        Click any neighborhood on the map, scatter plot, or scorecard below to inspect its 2015–2024 profile.
+      </div>
+    </section>
+
+    <!-- Top 10 Target Submarket Scorecard -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="p-5 border-b border-slate-200">
+        <h3 class="text-base font-bold text-slate-900">Top 10 Ranked Submarkets for Multifamily Capital Deployment</h3>
+        <p class="text-xs text-slate-500">Dynamically ranked by composite Investment Opportunity Score based on active slider weights.</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase">
+              <th class="py-3 px-3">Rank</th>
+              <th class="py-3 px-3">Community Area</th>
+              <th class="py-3 px-3 text-right">Opp Score</th>
+              <th class="py-3 px-3 text-right">FB Share Shift</th>
+              <th class="py-3 px-3 text-right">Real Rent Chg</th>
+              <th class="py-3 px-3 text-right">2024 Rent</th>
+              <th class="py-3 px-3 text-right">Cost Burden</th>
+            </tr>
+          </thead>
+          <tbody id="scorecard-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-xs text-slate-500 border-t border-slate-200 flex flex-col sm:flex-row justify-between gap-2">
+    <div>Methodology: Consistent ACS 5-year tract aggregations (2011–2015 vs. 2020–2024) adjusted via BLS R-CPI-U-RS. Correlation does not imply causation.</div>
+    <div><a href="https://github.com/bcoppage-IC/chicago-immigrant-housing" target="_blank" class="text-teal-700 font-medium hover:underline">View Source & Python Pipeline on GitHub →</a></div>
+  </footer>
+
+  <!-- Bootstrap App -->
+  <script type="module">
+    import { PortfolioRepository } from "./js/models.js";
+    import { DashboardView } from "./js/view.js";
+
+    async function bootstrap() {
+      try {
+        const repo = await new PortfolioRepository().load(
+          "./data/processed/ca_combined.csv",
+          "./data/raw/community_areas.geojson"
+        );
+        const view = new DashboardView(repo);
+        view.init();
+        // Default spotlight to West Englewood (CA #67)
+        view.selectArea(67);
+      } catch (err) {
+        console.error(err);
+        document.getElementById("area-spotlight").innerHTML =
+          `<div class="text-rose-600 text-sm font-medium">Data Load Error: ${err.message}. Ensure you are serving this page over HTTP (not file://).</div>`;
+      }
+    }
+
+    bootstrap();
+  </script>
+</body>
+</html>
