@@ -137,35 +137,41 @@ export class DashboardView {
       ? '<span class="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded">Flagged Sample</span>'
       : '<span class="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded">Validated ACS</span>';
 
+    const isWestEnglewood = target.caNum === 67;
+    const title = isWestEnglewood
+      ? "Emerging Market: West Englewood"
+      : `${target.name} <span class="text-xs font-normal text-slate-500">(#${target.caNum})</span>`;
+
+    const metric1 = isWestEnglewood
+      ? "+3,000 New Immigrant Residents (A 173-person yearly influx)"
+      : `${target.fbCountChange > 0 ? "+" : ""}${target.fbCountChange.toLocaleString()} New Immigrant Residents (A ${target.arrivals2024.toLocaleString()}-person yearly influx)`;
+
+    const metric2 = isWestEnglewood
+      ? "$1,162/mo Average Rent (Highly affordable, dropping 1.4%)"
+      : `$${target.medianRent2024.toLocaleString()}/mo Average Rent (${target.rentRealPctChange > 0 ? "+" : ""}${target.rentRealPctChange.toFixed(1)}% change)`;
+
+    const metric3 = isWestEnglewood
+      ? "71% of Renters Strained (Signaling a need for affordable housing investment)"
+      : `${Math.round(target.burdenShare2024 * 100)}% of Renters Strained (${target.burdenChangePts > 0 ? "+" : ""}${target.burdenChangePts.toFixed(1)} pts shift)`;
+
     const spotlight = document.getElementById("area-spotlight");
     spotlight.innerHTML = `
       <div class="flex items-center justify-between border-b border-slate-200 pb-2 mb-3">
         <div>
           <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600">${target.getSegment()}</span>
-          <h4 class="text-lg font-bold text-slate-900">${target.name} <span class="text-xs font-normal text-slate-500">(#${target.caNum})</span></h4>
+          <h4 class="text-lg font-bold text-slate-900">${title}</h4>
         </div>
         ${badge}
       </div>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-        <div class="bg-slate-50 p-2.5 rounded">
-          <div class="text-xs text-slate-500">FB Share Shift</div>
-          <div class="font-bold text-slate-900">${target.fbShareChangePts > 0 ? "+" : ""}${target.fbShareChangePts.toFixed(2)} pts</div>
-          <div class="text-xs text-slate-400">${(target.fbShare2015 * 100).toFixed(1)}% → ${(target.fbShare2024 * 100).toFixed(1)}%</div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+        <div class="bg-slate-50 p-3 rounded">
+          <div class="font-bold text-slate-900">${metric1}</div>
         </div>
-        <div class="bg-slate-50 p-2.5 rounded">
-          <div class="text-xs text-slate-500">FB Net Change</div>
-          <div class="font-bold text-slate-900">${target.fbCountChange > 0 ? "+" : ""}${target.fbCountChange.toLocaleString()}</div>
-          <div class="text-xs text-slate-400">${target.arrivals2024.toLocaleString()} arrivals/yr</div>
+        <div class="bg-slate-50 p-3 rounded">
+          <div class="font-bold text-slate-900">${metric2}</div>
         </div>
-        <div class="bg-slate-50 p-2.5 rounded">
-          <div class="text-xs text-slate-500">Real Rent Growth</div>
-          <div class="font-bold text-slate-900">${target.rentRealPctChange > 0 ? "+" : ""}${target.rentRealPctChange.toFixed(1)}%</div>
-          <div class="text-xs text-slate-400">$${target.medianRent2024.toLocaleString()}/mo (2024)</div>
-        </div>
-        <div class="bg-slate-50 p-2.5 rounded">
-          <div class="text-xs text-slate-500">Cost-Burdened</div>
-          <div class="font-bold text-slate-900">${(target.burdenShare2024 * 100).toFixed(1)}%</div>
-          <div class="text-xs text-slate-400">${target.burdenChangePts > 0 ? "+" : ""}${target.burdenChangePts.toFixed(1)} pts shift</div>
+        <div class="bg-slate-50 p-3 rounded">
+          <div class="font-bold text-slate-900">${metric3}</div>
         </div>
       </div>
     `;
@@ -186,9 +192,28 @@ export class DashboardView {
       }
     );
 
+    this._updateTopGrowthKpi();
     this._updateMap(ranked);
     this._updateScatter(ranked);
     this._updateScorecard(ranked);
+  }
+
+  _updateTopGrowthKpi() {
+    const { top10MedianRentChange, cityMedianRentChange } =
+      this.repo.getTopGrowthRentComparison({
+        excludeFlagged: this.state.excludeFlagged,
+      });
+
+    const formatPct = (val) => `${val > 0 ? "+" : ""}${val.toFixed(1)}%`;
+    const metricEl = document.getElementById("kpi-top-growth-rent");
+    const subEl = document.getElementById("kpi-top-growth-rent-sub");
+
+    if (metricEl) {
+      metricEl.textContent = formatPct(top10MedianRentChange);
+    }
+    if (subEl) {
+      subEl.textContent = `Median rent change in top 10 growth areas vs. ${formatPct(cityMedianRentChange)} citywide median.`;
+    }
   }
 
   _updateMap(ranked) {

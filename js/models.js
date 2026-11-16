@@ -88,4 +88,28 @@ export class PortfolioRepository {
     const bounds = this.getNormalizationBounds(filtered);
     return filtered.map(area => ({ area, score: area.calculateInvestmentScore(weights, bounds) })).sort((a, b) => b.score - a.score);
   }
+
+  getTopGrowthRentComparison(filterOptions = {}) {
+    const filtered = this.getFilteredAreas(filterOptions);
+    const cityMedianRentChange = this._median(filtered.map(a => a.rentRealPctChange));
+    const top10Growth = [...filtered]
+      .sort((a, b) => b.fbShareChangePts - a.fbShareChangePts)
+      .slice(0, 10);
+    const top10MedianRentChange = this._median(top10Growth.map(a => a.rentRealPctChange));
+
+    return {
+      top10MedianRentChange,
+      cityMedianRentChange,
+      difference: top10MedianRentChange - cityMedianRentChange
+    };
+  }
+
+  _median(values) {
+    if (!values.length) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 === 0
+      ? (sorted[mid - 1] + sorted[mid]) / 2
+      : sorted[mid];
+  }
 }
