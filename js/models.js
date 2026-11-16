@@ -91,7 +91,7 @@ export class PortfolioRepository {
 
   getTopGrowthRentComparison(filterOptions = {}) {
     const filtered = this.getFilteredAreas(filterOptions);
-    const cityMedianRentChange = this._median(filtered.map(a => a.rentRealPctChange));
+    const cityMedianRentChange = this.getCityMedianRentChange();
     const top10Growth = [...filtered]
       .sort((a, b) => b.fbShareChangePts - a.fbShareChangePts)
       .slice(0, 10);
@@ -101,6 +101,26 @@ export class PortfolioRepository {
       top10MedianRentChange,
       cityMedianRentChange,
       difference: top10MedianRentChange - cityMedianRentChange
+    };
+  }
+
+  // Median real rent % change across all community areas (never filtered).
+  getCityMedianRentChange() {
+    return this._median(this.areas.map(a => a.rentRealPctChange));
+  }
+
+  // Given a list of community area names, returns the summed net change in
+  // foreign-born residents plus each area's real rent % change.
+  getHubSummary(areaNames) {
+    const wanted = areaNames.map(n => n.trim().toUpperCase());
+    const areas = wanted.map(name => {
+      const area = this.areas.find(a => a.name.toUpperCase() === name);
+      if (!area) throw new Error(`Community area not found: ${name}`);
+      return area;
+    });
+    return {
+      totalFbCountChange: areas.reduce((sum, a) => sum + a.fbCountChange, 0),
+      rentChanges: areas.map(a => ({ name: a.name, rentRealPctChange: a.rentRealPctChange }))
     };
   }
 

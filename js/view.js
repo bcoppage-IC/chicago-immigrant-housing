@@ -1,3 +1,7 @@
+// Community area names (as they appear in ca_combined.csv) for the banner hub cards.
+const HISTORIC_HUBS = ["AVONDALE", "LOGAN SQUARE", "LOWER WEST SIDE"];
+const NEW_DESTINATIONS = ["HUMBOLDT PARK", "WEST ENGLEWOOD", "OHARE", "CLEARING"];
+
 export class DashboardView {
   constructor(repository) {
     this.repo = repository;
@@ -137,22 +141,13 @@ export class DashboardView {
       ? '<span class="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded">Flagged Sample</span>'
       : '<span class="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded">Validated ACS</span>';
 
-    const isWestEnglewood = target.caNum === 67;
-    const title = isWestEnglewood
-      ? "Emerging Market: West Englewood"
-      : `${target.name} <span class="text-xs font-normal text-slate-500">(#${target.caNum})</span>`;
+    const title = `${target.name} <span class="text-xs font-normal text-slate-500">(#${target.caNum})</span>`;
 
-    const metric1 = isWestEnglewood
-      ? "+3,000 New Immigrant Residents (A 173-person yearly influx)"
-      : `${target.fbCountChange > 0 ? "+" : ""}${target.fbCountChange.toLocaleString()} New Immigrant Residents (A ${target.arrivals2024.toLocaleString()}-person yearly influx)`;
+    const metric1 = `${target.fbCountChange > 0 ? "+" : ""}${target.fbCountChange.toLocaleString()} Net Change in Immigrant Residents (A ${target.arrivals2024.toLocaleString()}-person yearly influx)`;
 
-    const metric2 = isWestEnglewood
-      ? "$1,162/mo Average Rent (Highly affordable, dropping 1.4%)"
-      : `$${target.medianRent2024.toLocaleString()}/mo Average Rent (${target.rentRealPctChange > 0 ? "+" : ""}${target.rentRealPctChange.toFixed(1)}% change)`;
+    const metric2 = `$${target.medianRent2024.toLocaleString()}/mo Median Rent (${target.rentRealPctChange > 0 ? "+" : ""}${target.rentRealPctChange.toFixed(1)}% change)`;
 
-    const metric3 = isWestEnglewood
-      ? "71% of Renters Strained (Signaling a need for affordable housing investment)"
-      : `${Math.round(target.burdenShare2024 * 100)}% of Renters Strained (${target.burdenChangePts > 0 ? "+" : ""}${target.burdenChangePts.toFixed(1)} pts shift)`;
+    const metric3 = `${Math.round(target.burdenShare2024 * 100)}% of Renters Strained (${target.burdenChangePts > 0 ? "+" : ""}${target.burdenChangePts.toFixed(1)} pts shift)`;
 
     const spotlight = document.getElementById("area-spotlight");
     spotlight.innerHTML = `
@@ -192,28 +187,56 @@ export class DashboardView {
       }
     );
 
-    this._updateTopGrowthKpi();
+    this._updateKpiBanner();
     this._updateMap(ranked);
     this._updateScatter(ranked);
     this._updateScorecard(ranked);
   }
 
-  _updateTopGrowthKpi() {
+  _updateKpiBanner() {
+    const setText = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    const sign = (val) => (val > 0 ? "+" : val < 0 ? "-" : "");
+    const formatPct = (val, digits = 1) => `${sign(val)}${Math.abs(val).toFixed(digits)}%`;
+    const formatHundreds = (val) => {
+      const rounded = Math.round(val / 100) * 100;
+      return `${sign(rounded)}${Math.abs(rounded).toLocaleString("en-US")}`;
+    };
+
+    // Card 1: rent change in the 10 areas where immigrants grew most
     const { top10MedianRentChange, cityMedianRentChange } =
       this.repo.getTopGrowthRentComparison({
         excludeFlagged: this.state.excludeFlagged,
       });
+    const cityMedianText = formatPct(cityMedianRentChange);
+    setText("kpi-top-growth-rent", formatPct(top10MedianRentChange));
+    setText(
+      "kpi-top-growth-rent-sub",
+      `Median rent change, 2015 to 2024, after inflation, in the 10 areas where immigrants grew most. City median: ${cityMedianText}.`
+    );
 
-    const formatPct = (val) => `${val > 0 ? "+" : ""}${val.toFixed(1)}%`;
-    const metricEl = document.getElementById("kpi-top-growth-rent");
-    const subEl = document.getElementById("kpi-top-growth-rent-sub");
+    // Cards 2 and 3: historic hubs
+    const historic = this.repo.getHubSummary(HISTORIC_HUBS);
+    setText("kpi-historic-hub-change", formatHundreds(historic.totalFbCountChange));
 
-    if (metricEl) {
-      metricEl.textContent = formatPct(top10MedianRentChange);
-    }
-    if (subEl) {
-      subEl.textContent = `Median rent change in top 10 growth areas vs. ${formatPct(cityMedianRentChange)} citywide median.`;
-    }
+    const hubRents = historic.rentChanges.map((r) => r.rentRealPctChange);
+    const hubMin = Math.min(...hubRents);
+    const hubMax = Math.max(...hubRents);
+    setText("kpi-historic-hub-rent", `${formatPct(hubMin, 0)} to ${formatPct(hubMax, 0)}`);
+
+    const multMin = Math.round(hubMin / cityMedianRentChange);
+    const multMax = Math.round(hubMax / cityMedianRentChange);
+    const multText = multMin === multMax ? `${multMin}` : `${multMin} to ${multMax}`;
+    setText(
+      "kpi-historic-hub-rent-sub",
+      `Rent growth after inflation, 2015 to 2024. About ${multText} times the city median of ${cityMedianText}.`
+    );
+
+    // Card 4: new destinations
+    const newDest = this.repo.getHubSummary(NEW_DESTINATIONS);
+    setText("kpi-new-dest-change", formatHundreds(newDest.totalFbCountChange));
   }
 
   _updateMap(ranked) {
