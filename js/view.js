@@ -139,7 +139,7 @@ export class DashboardView {
 
     const badge = target.isFlagged()
       ? '<span class="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded">Flagged Sample</span>'
-      : '<span class="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded">Validated ACS</span>';
+      : '<span class="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded">Passed Checks</span>';
 
     const title = `${target.name} <span class="text-xs font-normal text-slate-500">(#${target.caNum})</span>`;
 
