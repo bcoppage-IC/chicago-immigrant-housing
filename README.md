@@ -66,6 +66,34 @@ The View switch sets the three weights and the direction of the cost-burden meas
 
 Each View is a point of view, not a finding. The data shows correlation, not cause.
 
+### Spotlight
+
+The spotlight card shows one area's facts. No area is hard-coded. A rule picks it:
+
+1. By default, the spotlight shows the #1 ranked area for the current View, sliders, and filters.
+2. Clicking an area on the map, the bubble chart, or the top 10 table selects it. The spotlight then shows that area and keeps showing it.
+3. Changing any control (View, any slider, the flag toggle, or the segment filter) clears the selection. The spotlight returns to the #1 ranked area.
+4. The card says where the area came from, on a line above the name:
+
+| How it got there | Line shown |
+| --- | --- |
+| Default, View weights unchanged | #1 ranked in Rental investor view (or Community lender view) |
+| Default, a slider was moved | #1 ranked in Rental investor view, your slider weights |
+| Default, a segment filter is on | Add ", Direct-Arrival Hubs only" (the segment's name) to the end |
+| Clicked on the map | Selected on the map |
+| Clicked on the bubble chart | Selected on the bubble chart |
+| Clicked in the top 10 table | Selected in the top 10 table |
+
+5. The card shows the area's score and rank, for example "Score 71.4, rank #5 of 71". If the selected area is not in the current rankings (for example a flagged area clicked on the map), it shows "Not ranked with current filters".
+6. If no areas match the filters, the card says "No areas match these filters."
+7. Each metric box names what it shows, the time period, and the source. "2015" means ACS 2011-2015. "2024" means ACS 2020-2024.
+
+| Box | Label | Value | Detail line |
+| --- | --- | --- | --- |
+| 1 | Immigrant residents, change 2015 to 2024 | Net change in foreign-born residents | Count 2015 to count 2024. About N a year moved here from abroad (2020-24 average). Source: Census ACS, B05002, B07007. |
+| 2 | Median rent, 2024 | Median gross rent per month | Percent change since 2015, after inflation. Source: Census ACS, B25063. Inflation: BLS R-CPI-U-RS. |
+| 3 | Renters paying 30%+ of income on rent, 2024 | Share of renter households | Point change since 2015. Source: Census ACS, B25070. |
+
 ### Limits
 
 - ACS margins of error are pulled but not modeled.
