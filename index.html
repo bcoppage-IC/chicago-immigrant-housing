@@ -107,16 +107,16 @@
             <span id="val-rent" class="text-teal-700 font-mono">30%</span>
           </div>
           <input id="weight-rent" type="range" min="0" max="100" value="30" class="w-full accent-teal-600 cursor-pointer" />
-          <p class="text-[11px] text-slate-500 mt-1">Rewards neighborhoods with low 2015–2024 rent inflation before peak pricing.</p>
+          <p class="text-[11px] text-slate-500 mt-1">Inflation-adjusted median rent change, ACS 2011–15 to 2020–24. Lower growth scores higher.</p>
         </div>
 
         <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
           <div class="flex justify-between text-xs font-semibold mb-2">
-            <span class="text-slate-700">Tenant Affordability Ceiling</span>
+            <span class="text-slate-700">Renter Cost Burden</span>
             <span id="val-burden" class="text-teal-700 font-mono">20%</span>
           </div>
           <input id="weight-burden" type="range" min="0" max="100" value="20" class="w-full accent-teal-600 cursor-pointer" />
-          <p class="text-[11px] text-slate-500 mt-1">Favors areas with lower cost-burdened renter shares (<30% income on rent).</p>
+          <p class="text-[11px] text-slate-500 mt-1">Share of renters paying 30%+ of income on rent (ACS 2020–24, table B25070). Lower share scores higher.</p>
         </div>
       </div>
     </section>
@@ -186,7 +186,7 @@
   </main>
 
   <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-xs text-slate-500 border-t border-slate-200 flex flex-col sm:flex-row justify-between gap-2">
-    <div>Methodology: Consistent ACS 5-year tract aggregations (2011–2015 vs. 2020–2024) adjusted via BLS R-CPI-U-RS. Correlation does not imply causation.</div>
+    <div>Methodology: Consistent ACS 5-year tract aggregations (2011–2015 vs. 2020–2024) adjusted via BLS R-CPI-U-RS. Scores are relative to the areas shown and assume lower rent growth and lower cost burden leave more room for rent increases. ACS margins of error are not modeled. Correlation does not imply causation.</div>
     <div><a href="https://github.com/bcoppage-IC/chicago-immigrant-housing" target="_blank" class="text-teal-700 font-medium hover:underline">View Source & Python Pipeline on GitHub →</a></div>
   </footer>
 
