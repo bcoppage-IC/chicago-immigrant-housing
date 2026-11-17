@@ -11,7 +11,8 @@ import pandas as pd
 
 P = Path("data/processed")
 OUT = P / "ca_combined.csv"
-CARE = {"WOODLAWN", "SOUTH SHORE", "FULLER PARK"}   # see README, Methods 9
+# Woodlawn and South Shore removed Nov 2026: only 11% of one tract crosses their line.
+CARE = {"FULLER PARK"}   # also under 1,000 renters (small_sample)
 COUNTS = ["pop", "foreign_born", "recent_fb_arrivals", "housing_units",
           "renters", "cost_burdened"]
 SHARES = ["fb_share", "recent_arrival_share", "burden_share"]
