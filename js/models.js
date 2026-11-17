@@ -6,6 +6,8 @@ export class CommunityArea {
     this.fbShare2015 = Number(row.fb_share_2015) || 0;
     this.fbShare2024 = Number(row.fb_share_2024) || 0;
     this.fbShareChangePts = Number(row.fb_share_chg_pts) || 0;
+    this.fbCount2015 = Number(row.foreign_born_2015) || 0;
+    this.fbCount2024 = Number(row.foreign_born_2024) || 0;
     this.fbCountChange = Number(row.foreign_born_chg) || 0;
     this.arrivals2024 = Number(row.recent_fb_arrivals_2024) || 0;
     this.arrivalShare2024 = Number(row.recent_arrival_share_2024) || 0;

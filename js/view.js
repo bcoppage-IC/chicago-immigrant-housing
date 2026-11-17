@@ -2,6 +2,13 @@
 const HISTORIC_HUBS = ["AVONDALE", "LOGAN SQUARE", "LOWER WEST SIDE"];
 const NEW_DESTINATIONS = ["HUMBOLDT PARK", "WEST ENGLEWOOD", "OHARE", "CLEARING"];
 
+const SEGMENT_LABELS = {
+  "Direct-Arrival Hub": "Direct-Arrival Hubs",
+  "Domestic-Migration Corridor": "Domestic-Migration Corridors",
+  "Displacement Gateway": "Displacement Gateways",
+  "Stable / Other": "Stable / Other",
+};
+
 const VIEW_PRESETS = {
   investor: {
     label: "Rental investor",
@@ -41,6 +48,8 @@ export class DashboardView {
       affordabilityWeight: 20,
       excludeFlagged: true,
       segment: "ALL",
+      pinnedCaNum: null,
+      pinSource: null,
     };
   }
 
@@ -69,6 +78,8 @@ export class DashboardView {
       this.state.growthWeight = Number(growthSlider.value);
       this.state.rentHeadroomWeight = Number(rentSlider.value);
       this.state.affordabilityWeight = Number(burdenSlider.value);
+      this.state.pinnedCaNum = null;
+      this.state.pinSource = null;
       updateWeightLabels();
       this.render();
     };
@@ -81,6 +92,8 @@ export class DashboardView {
       this.state.growthWeight = preset.growthWeight;
       this.state.rentHeadroomWeight = preset.rentHeadroomWeight;
       this.state.affordabilityWeight = preset.affordabilityWeight;
+      this.state.pinnedCaNum = null;
+      this.state.pinSource = null;
 
       growthSlider.value = String(preset.growthWeight);
       rentSlider.value = String(preset.rentHeadroomWeight);
@@ -100,11 +113,15 @@ export class DashboardView {
 
     flaggedToggle.addEventListener("change", (e) => {
       this.state.excludeFlagged = e.target.checked;
+      this.state.pinnedCaNum = null;
+      this.state.pinSource = null;
       this.render();
     });
 
     segmentSelect.addEventListener("change", (e) => {
       this.state.segment = e.target.value;
+      this.state.pinnedCaNum = null;
+      this.state.pinSource = null;
       this.render();
     });
   }
@@ -174,53 +191,108 @@ export class DashboardView {
             const dsIndex = elements[0].datasetIndex;
             const index = elements[0].index;
             const clicked = this.scatterChart.data.datasets[dsIndex].data[index];
-            this.selectArea(clicked.area.caNum);
+            this.pinArea(clicked.area.caNum, "bubble");
           }
         },
       },
     });
   }
 
-  selectArea(caNum) {
-    this.selectedCaNum = caNum;
-    const target = this.repo.areas.find((a) => a.caNum === caNum);
-    if (!target) return;
+  pinArea(caNum, source) {
+    this.state.pinnedCaNum = caNum;
+    this.state.pinSource = source;
+    this.render();
+  }
 
-    const badge = target.isFlagged()
+  _getSpotlightSourceLine(mode) {
+    if (mode === "selected") {
+      if (this.state.pinSource === "map") return "Selected on the map";
+      if (this.state.pinSource === "bubble") return "Selected on the bubble chart";
+      if (this.state.pinSource === "table") return "Selected in the top 10 table";
+    }
+    const preset = VIEW_PRESETS[this.state.view];
+    let line = `#1 ranked in ${preset.label} view`;
+    const hasCustomWeights =
+      this.state.growthWeight !== preset.growthWeight ||
+      this.state.rentHeadroomWeight !== preset.rentHeadroomWeight ||
+      this.state.affordabilityWeight !== preset.affordabilityWeight;
+    if (hasCustomWeights) {
+      line += ", your slider weights";
+    }
+    if (this.state.segment !== "ALL") {
+      const segLabel = SEGMENT_LABELS[this.state.segment] || this.state.segment;
+      line += `, ${segLabel} only`;
+    }
+    return line;
+  }
+
+  _updateSpotlight(area, mode, ranked) {
+    const spotlight = document.getElementById("area-spotlight");
+    if (!area) {
+      spotlight.innerHTML = `
+        <div class="text-xs text-slate-500 text-center py-2">
+          No areas match these filters.
+        </div>
+      `;
+      return;
+    }
+
+    const badge = area.isFlagged()
       ? '<span class="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded">Flagged Sample</span>'
       : '<span class="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded">Passed Checks</span>';
 
-    const title = `${target.name} <span class="text-xs font-normal text-slate-500">(#${target.caNum})</span>`;
+    const sourceLine = this._getSpotlightSourceLine(mode);
+    const title = `${area.name} <span class="text-xs font-normal text-slate-500">(#${area.caNum})</span>`;
 
-    const metric1 = `${target.fbCountChange > 0 ? "+" : ""}${target.fbCountChange.toLocaleString()} Net Change in Immigrant Residents (A ${target.arrivals2024.toLocaleString()}-person yearly influx)`;
+    const rankIdx = ranked.findIndex((r) => r.area.caNum === area.caNum);
+    const scoreLine =
+      rankIdx !== -1
+        ? `Score ${ranked[rankIdx].score.toFixed(1)}, rank #${rankIdx + 1} of ${ranked.length}`
+        : "Not ranked with current filters";
 
-    const metric2 = `$${target.medianRent2024.toLocaleString()}/mo Median Rent (${target.rentRealPctChange > 0 ? "+" : ""}${target.rentRealPctChange.toFixed(1)}% change)`;
+    const sign = (val) => (val > 0 ? "+" : val < 0 ? "−" : "");
+    const formatSignedInt = (val) => `${sign(val)}${Math.abs(val).toLocaleString("en-US")}`;
+    const formatSignedDecimal = (val, digits = 1) => `${sign(val)}${Math.abs(val).toFixed(digits)}`;
 
-    const metric3 = `${Math.round(target.burdenShare2024 * 100)}% of Renters Strained (${target.burdenChangePts > 0 ? "+" : ""}${target.burdenChangePts.toFixed(1)} pts shift)`;
+    const box1Value = formatSignedInt(area.fbCountChange);
+    const box1Detail = `${area.fbCount2015.toLocaleString("en-US")} to ${area.fbCount2024.toLocaleString("en-US")} people. About ${area.arrivals2024.toLocaleString("en-US")} a year moved here from abroad (2020–24 average). Source: Census ACS, B05002, B07007.`;
 
-    const spotlight = document.getElementById("area-spotlight");
+    const box2Value = `$${area.medianRent2024.toLocaleString("en-US")}/mo`;
+    const box2Detail = `${formatSignedDecimal(area.rentRealPctChange, 1)}% since 2015, after inflation. Source: Census ACS, B25063. Inflation: BLS R-CPI-U-RS.`;
+
+    const box3Value = `${Math.round(area.burdenShare2024 * 100)}%`;
+    const box3Detail = `${formatSignedDecimal(area.burdenChangePts, 1)} points since 2015. Source: Census ACS, B25070.`;
+
     spotlight.innerHTML = `
       <div class="flex items-center justify-between border-b border-slate-200 pb-2 mb-3">
         <div>
-          <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600">${target.getSegment()}</span>
+          <div class="text-xs">
+            <span class="font-semibold text-indigo-600">${sourceLine}</span>
+            <span class="text-slate-500"> · ${area.getSegment()}</span>
+          </div>
           <h4 class="text-lg font-bold text-slate-900">${title}</h4>
+          <div class="text-xs text-slate-600">${scoreLine}</div>
         </div>
         ${badge}
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
         <div class="bg-slate-50 p-3 rounded">
-          <div class="font-bold text-slate-900">${metric1}</div>
+          <div class="text-xs text-slate-500">Immigrant residents, change 2015 to 2024</div>
+          <div class="text-lg font-bold text-slate-900 mt-0.5">${box1Value}</div>
+          <div class="text-xs text-slate-600 mt-1">${box1Detail}</div>
         </div>
         <div class="bg-slate-50 p-3 rounded">
-          <div class="font-bold text-slate-900">${metric2}</div>
+          <div class="text-xs text-slate-500">Median rent, 2024</div>
+          <div class="text-lg font-bold text-slate-900 mt-0.5">${box2Value}</div>
+          <div class="text-xs text-slate-600 mt-1">${box2Detail}</div>
         </div>
         <div class="bg-slate-50 p-3 rounded">
-          <div class="font-bold text-slate-900">${metric3}</div>
+          <div class="text-xs text-slate-500">Renters paying 30%+ of income on rent, 2024</div>
+          <div class="text-lg font-bold text-slate-900 mt-0.5">${box3Value}</div>
+          <div class="text-xs text-slate-600 mt-1">${box3Detail}</div>
         </div>
       </div>
     `;
-
-    this._updateMap(this.repo.getRankedAreas(this.state, this.state));
   }
 
   render() {
@@ -237,10 +309,22 @@ export class DashboardView {
       }
     );
 
+    let spotlightArea = null;
+    let spotlightMode = "empty";
+    if (this.state.pinnedCaNum !== null) {
+      spotlightArea = this.repo.areas.find((a) => a.caNum === this.state.pinnedCaNum) || null;
+      spotlightMode = spotlightArea ? "selected" : "empty";
+    } else if (ranked.length > 0) {
+      spotlightArea = ranked[0].area;
+      spotlightMode = "top";
+    }
+    this.selectedCaNum = spotlightArea ? spotlightArea.caNum : null;
+
     this._updateKpiBanner();
     this._updateMap(ranked);
     this._updateScatter(ranked);
     this._updateScorecard(ranked);
+    this._updateSpotlight(spotlightArea, spotlightMode, ranked);
   }
 
   _updateKpiBanner() {
@@ -331,7 +415,7 @@ export class DashboardView {
           layer.bindTooltip(
             `<strong>${area.name}</strong><br/>${scoreLabel}<br/>FB Shift: ${area.fbShareChangePts > 0 ? "+" : ""}${area.fbShareChangePts.toFixed(2)} pts<br/>Real Rent: ${area.rentRealPctChange > 0 ? "+" : ""}${area.rentRealPctChange.toFixed(1)}%`
           );
-          layer.on("click", () => this.selectArea(caNum));
+          layer.on("click", () => this.pinArea(caNum, "map"));
         }
       },
     }).addTo(this.map);
@@ -394,7 +478,7 @@ export class DashboardView {
 
     tbody.querySelectorAll("tr").forEach((row) => {
       row.addEventListener("click", () => {
-        this.selectArea(Number(row.dataset.ca));
+        this.pinArea(Number(row.dataset.ca), "table");
       });
     });
   }

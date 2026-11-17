@@ -207,8 +207,6 @@
         );
         const view = new DashboardView(repo);
         view.init();
-        // Default spotlight to West Englewood (CA #67)
-        view.selectArea(67);
       } catch (err) {
         console.error(err);
         document.getElementById("area-spotlight").innerHTML =
