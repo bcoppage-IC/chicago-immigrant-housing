@@ -76,6 +76,10 @@
           <p class="text-xs text-slate-500">Adjust underwriting weights and data hygiene filters to re-rank Chicago's 77 community areas in real time.</p>
         </div>
         <div class="flex flex-wrap items-center gap-4">
+          <select id="view-preset" class="text-xs font-medium text-slate-700 bg-slate-100 border-0 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500">
+            <option value="investor">View: Rental investor</option>
+            <option value="lender">View: Community lender</option>
+          </select>
           <label class="inline-flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-100 px-3 py-2 rounded-lg">
             <input id="toggle-flagged" type="checkbox" checked class="rounded text-teal-600 focus:ring-teal-500" />
             Exclude 6 Flagged Areas (Under 1,000 Renters)
@@ -116,7 +120,7 @@
             <span id="val-burden" class="text-teal-700 font-mono">20%</span>
           </div>
           <input id="weight-burden" type="range" min="0" max="100" value="20" class="w-full accent-teal-600 cursor-pointer" />
-          <p class="text-[11px] text-slate-500 mt-1">Share of renters paying 30%+ of income on rent (ACS 2020–24, table B25070). Lower share scores higher.</p>
+          <p id="burden-desc" class="text-[11px] text-slate-500 mt-1">Share of renters paying 30%+ of income on rent (ACS 2020–24, table B25070). Lower share scores higher.</p>
         </div>
       </div>
     </section>
@@ -162,7 +166,7 @@
     <!-- Top 10 Target Submarket Scorecard -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="p-5 border-b border-slate-200">
-        <h3 class="text-base font-bold text-slate-900">Top 10 Neighborhoods for Housing Investment</h3>
+        <h3 id="scorecard-title" class="text-base font-bold text-slate-900">Top 10 Neighborhoods: Rental Investor View</h3>
         <p class="text-xs text-slate-500">Ranked by investment potential based on your custom slider settings.</p>
       </div>
       <div class="overflow-x-auto">
@@ -186,7 +190,7 @@
   </main>
 
   <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-xs text-slate-500 border-t border-slate-200 flex flex-col sm:flex-row justify-between gap-2">
-    <div>Methodology: Consistent ACS 5-year tract aggregations (2011–2015 vs. 2020–2024) adjusted via BLS R-CPI-U-RS. Scores are relative to the areas shown and assume lower rent growth and lower cost burden leave more room for rent increases. ACS margins of error are not modeled. Correlation does not imply causation.</div>
+    <div>Methodology: Consistent ACS 5-year tract aggregations (2011–2015 vs. 2020–2024) adjusted via BLS R-CPI-U-RS. <span id="method-assumption">Scores are relative to the areas shown and assume lower rent growth and lower cost burden leave more room for rent increases.</span> ACS margins of error are not modeled. Correlation does not imply causation.</div>
     <div><a href="https://github.com/bcoppage-IC/chicago-immigrant-housing" target="_blank" class="text-teal-700 font-medium hover:underline">View Source & Python Pipeline on GitHub →</a></div>
   </footer>
 

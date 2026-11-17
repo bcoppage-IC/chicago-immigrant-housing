@@ -2,6 +2,29 @@
 const HISTORIC_HUBS = ["AVONDALE", "LOGAN SQUARE", "LOWER WEST SIDE"];
 const NEW_DESTINATIONS = ["HUMBOLDT PARK", "WEST ENGLEWOOD", "OHARE", "CLEARING"];
 
+const VIEW_PRESETS = {
+  investor: {
+    label: "Rental investor",
+    growthWeight: 50,
+    rentHeadroomWeight: 30,
+    affordabilityWeight: 20,
+    burdenDirection: "lower",
+    burdenText: "Share of renters paying 30%+ of income on rent (ACS 2020–24, table B25070). Lower share scores higher.",
+    assumptionText: "Scores are relative to the areas shown and assume lower rent growth and lower cost burden leave more room for rent increases.",
+    tableTitle: "Top 10 Neighborhoods: Rental Investor View",
+  },
+  lender: {
+    label: "Community lender",
+    growthWeight: 50,
+    rentHeadroomWeight: 30,
+    affordabilityWeight: 20,
+    burdenDirection: "higher",
+    burdenText: "Share of renters paying 30%+ of income on rent (ACS 2020–24, table B25070). Higher share scores higher.",
+    assumptionText: "Scores are relative to the areas shown and assume renters with high cost burden are likely first-time buyers who need affordable credit.",
+    tableTitle: "Top 10 Neighborhoods: Community Lender View",
+  },
+};
+
 export class DashboardView {
   constructor(repository) {
     this.repo = repository;
@@ -11,6 +34,8 @@ export class DashboardView {
     this.selectedCaNum = null;
 
     this.state = {
+      view: "investor",
+      burdenDirection: "lower",
       growthWeight: 50,
       rentHeadroomWeight: 30,
       affordabilityWeight: 20,
@@ -27,23 +52,47 @@ export class DashboardView {
   }
 
   _bindControls() {
+    const viewSelect = document.getElementById("view-preset");
     const growthSlider = document.getElementById("weight-growth");
     const rentSlider = document.getElementById("weight-rent");
     const burdenSlider = document.getElementById("weight-burden");
     const flaggedToggle = document.getElementById("toggle-flagged");
     const segmentSelect = document.getElementById("filter-segment");
 
+    const updateWeightLabels = () => {
+      document.getElementById("val-growth").textContent = `${this.state.growthWeight}%`;
+      document.getElementById("val-rent").textContent = `${this.state.rentHeadroomWeight}%`;
+      document.getElementById("val-burden").textContent = `${this.state.affordabilityWeight}%`;
+    };
+
     const syncSliders = () => {
       this.state.growthWeight = Number(growthSlider.value);
       this.state.rentHeadroomWeight = Number(rentSlider.value);
       this.state.affordabilityWeight = Number(burdenSlider.value);
-
-      document.getElementById("val-growth").textContent = `${this.state.growthWeight}%`;
-      document.getElementById("val-rent").textContent = `${this.state.rentHeadroomWeight}%`;
-      document.getElementById("val-burden").textContent = `${this.state.affordabilityWeight}%`;
-
+      updateWeightLabels();
       this.render();
     };
+
+    viewSelect.addEventListener("change", (e) => {
+      const preset = VIEW_PRESETS[e.target.value];
+      if (!preset) return;
+      this.state.view = e.target.value;
+      this.state.burdenDirection = preset.burdenDirection;
+      this.state.growthWeight = preset.growthWeight;
+      this.state.rentHeadroomWeight = preset.rentHeadroomWeight;
+      this.state.affordabilityWeight = preset.affordabilityWeight;
+
+      growthSlider.value = String(preset.growthWeight);
+      rentSlider.value = String(preset.rentHeadroomWeight);
+      burdenSlider.value = String(preset.affordabilityWeight);
+      updateWeightLabels();
+
+      document.getElementById("burden-desc").textContent = preset.burdenText;
+      document.getElementById("method-assumption").textContent = preset.assumptionText;
+      document.getElementById("scorecard-title").textContent = preset.tableTitle;
+
+      this.render();
+    });
 
     growthSlider.addEventListener("input", syncSliders);
     rentSlider.addEventListener("input", syncSliders);
@@ -180,6 +229,7 @@ export class DashboardView {
         growthWeight: this.state.growthWeight,
         rentHeadroomWeight: this.state.rentHeadroomWeight,
         affordabilityWeight: this.state.affordabilityWeight,
+        burdenDirection: this.state.burdenDirection,
       },
       {
         excludeFlagged: this.state.excludeFlagged,

@@ -34,7 +34,8 @@ export class CommunityArea {
     if (totalWeight === 0) return 0;
     const growthNorm = this._norm(this.fbShareChangePts, bounds.minFbShareChg, bounds.maxFbShareChg);
     const rentNorm = 1 - this._norm(this.rentRealPctChange, bounds.minRentChg, bounds.maxRentChg);
-    const burdenNorm = 1 - this._norm(this.burdenShare2024, bounds.minBurden, bounds.maxBurden);
+    const rawBurdenNorm = this._norm(this.burdenShare2024, bounds.minBurden, bounds.maxBurden);
+    const burdenNorm = weights.burdenDirection === "higher" ? rawBurdenNorm : 1 - rawBurdenNorm;
     const raw = (growthNorm * weights.growthWeight + rentNorm * weights.rentHeadroomWeight + burdenNorm * weights.affordabilityWeight) / totalWeight;
     return Math.round(raw * 1000) / 10;
   }
