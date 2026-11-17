@@ -1,11 +1,11 @@
 # Findings log
 
-Last updated: November 2, 2026
+Last updated: November 17, 2026
 
 ## 1. Foreign-born share change vs. rent change
 
-- Correlation between foreign-born share change and real rent change: r = -0.37 across 69 unflagged community areas (rough p about 0.002).
-- Without Avondale: r = -0.28 across 68 areas (rough p about 0.02). Avondale strengthens the pattern but does not create it.
+- Correlation between foreign-born share change and real rent change: r = -0.37 across 71 unflagged community areas (rough p about 0.001). Woodlawn and South Shore were unflagged Nov 17 (minor tract split); before that, 69 areas, p about 0.002.
+- Without Avondale: r = -0.28 across 70 areas (rough p about 0.02). Avondale strengthens the pattern but does not create it.
 - Areas where the foreign-born share fell tended to see bigger rent increases.
 - This shows a link, not a cause.
 - City medians: foreign-born share change +0.82 points; real rent change +6.31%.
