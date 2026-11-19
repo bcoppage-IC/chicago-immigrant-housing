@@ -83,6 +83,7 @@ The spotlight card shows one area's facts. No area is hard-coded. A rule picks i
 | Clicked on the map | Selected on the map |
 | Clicked on the bubble chart | Selected on the bubble chart |
 | Clicked in the top 10 table | Selected in the top 10 table |
+| Picked from the floating "I live here" button (all 77 community areas, A–Z) | Home |
 
 5. The card shows the area's score and rank, for example "Score 71.4, rank #5 of 71". If the selected area is not in the current rankings (for example a flagged area clicked on the map), it shows "Not ranked with current filters".
 6. If no areas match the filters, the card says "No areas match these filters."

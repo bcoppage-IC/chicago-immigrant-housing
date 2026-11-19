@@ -67,6 +67,38 @@ export class DashboardView {
     const burdenSlider = document.getElementById("weight-burden");
     const flaggedToggle = document.getElementById("toggle-flagged");
     const segmentSelect = document.getElementById("filter-segment");
+    const homeBtn = document.getElementById("home-btn");
+    const homePanel = document.getElementById("home-panel");
+    const homePicker = document.getElementById("home-picker");
+
+    if (homePicker) {
+      const sortedAreas = [...this.repo.areas].sort((a, b) => a.name.localeCompare(b.name));
+      sortedAreas.forEach((area) => {
+        const opt = document.createElement("option");
+        opt.value = String(area.caNum);
+        opt.textContent = area.name;
+        homePicker.appendChild(opt);
+      });
+
+      homePicker.addEventListener("change", (e) => {
+        if (!e.target.value) return;
+        this.pinArea(Number(e.target.value), "home");
+        if (homePanel) homePanel.classList.add("hidden");
+      });
+    }
+
+    if (homeBtn && homePanel) {
+      homeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        homePanel.classList.toggle("hidden");
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!homePanel.classList.contains("hidden") && !homePanel.contains(e.target) && !homeBtn.contains(e.target)) {
+          homePanel.classList.add("hidden");
+        }
+      });
+    }
 
     const updateWeightLabels = () => {
       document.getElementById("val-growth").textContent = `${this.state.growthWeight}%`;
@@ -80,6 +112,7 @@ export class DashboardView {
       this.state.affordabilityWeight = Number(burdenSlider.value);
       this.state.pinnedCaNum = null;
       this.state.pinSource = null;
+      if (homePicker) homePicker.value = "";
       updateWeightLabels();
       this.render();
     };
@@ -94,6 +127,7 @@ export class DashboardView {
       this.state.affordabilityWeight = preset.affordabilityWeight;
       this.state.pinnedCaNum = null;
       this.state.pinSource = null;
+      if (homePicker) homePicker.value = "";
 
       growthSlider.value = String(preset.growthWeight);
       rentSlider.value = String(preset.rentHeadroomWeight);
@@ -115,6 +149,7 @@ export class DashboardView {
       this.state.excludeFlagged = e.target.checked;
       this.state.pinnedCaNum = null;
       this.state.pinSource = null;
+      if (homePicker) homePicker.value = "";
       this.render();
     });
 
@@ -122,6 +157,7 @@ export class DashboardView {
       this.state.segment = e.target.value;
       this.state.pinnedCaNum = null;
       this.state.pinSource = null;
+      if (homePicker) homePicker.value = "";
       this.render();
     });
   }
@@ -201,11 +237,14 @@ export class DashboardView {
   pinArea(caNum, source) {
     this.state.pinnedCaNum = caNum;
     this.state.pinSource = source;
+    const homePicker = document.getElementById("home-picker");
+    if (homePicker) homePicker.value = String(caNum);
     this.render();
   }
 
   _getSpotlightSourceLine(mode) {
     if (mode === "selected") {
+      if (this.state.pinSource === "home") return "Home";
       if (this.state.pinSource === "map") return "Selected on the map";
       if (this.state.pinSource === "bubble") return "Selected on the bubble chart";
       if (this.state.pinSource === "table") return "Selected in the top 10 table";
@@ -249,6 +288,10 @@ export class DashboardView {
       rankIdx !== -1
         ? `Score ${ranked[rankIdx].score.toFixed(1)}, rank #${rankIdx + 1} of ${ranked.length}`
         : "Not ranked with current filters";
+    const flaggedNote =
+      area.isFlagged() && this.state.excludeFlagged
+        ? '<div class="text-xs text-amber-700 mt-0.5">Note: This area is flagged (under 1,000 renters).</div>'
+        : "";
 
     const sign = (val) => (val > 0 ? "+" : val < 0 ? "−" : "");
     const formatSignedInt = (val) => `${sign(val)}${Math.abs(val).toLocaleString("en-US")}`;
@@ -272,6 +315,7 @@ export class DashboardView {
           </div>
           <h4 class="text-lg font-bold text-slate-900">${title}</h4>
           <div class="text-xs text-slate-600">${scoreLine}</div>
+          ${flaggedNote}
         </div>
         ${badge}
       </div>
