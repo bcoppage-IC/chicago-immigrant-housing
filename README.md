@@ -39,7 +39,7 @@ This section is the source of truth for how the dashboard computes and labels ev
 | Foreign-born share change | 2024 foreign-born share minus 2015 share, in percentage points |
 | Real rent change | Percent change in median gross rent, 2015 (in 2024 dollars) to 2024 |
 | Renter cost burden | Share of renter households paying 30% or more of income on gross rent, 2020-2024. Denominator excludes households where burden is not computed |
-| Recent arrivals | Foreign-born residents who moved from abroad in the past year (B07007_028E), as a share of residents age 1+ |
+| Recent arrivals | Foreign-born residents who moved from abroad in the past year (B07007_028E), as a share of residents age 1+. This counts only direct arrivals from another country. It is not the same as net foreign-born change, which also reflects moves within the U.S. |
 
 ### Flags
 
@@ -91,13 +91,14 @@ The spotlight card shows one area's facts. No area is hard-coded. A rule picks i
 
 | Box | Label | Value | Detail line |
 | --- | --- | --- | --- |
-| 1 | Immigrant residents, change 2015 to 2024 | Net change in foreign-born residents | Count 2015 to count 2024. About N a year moved here from abroad (2020-24 average). Source: Census ACS, B05002, B07007. |
+| 1 | Foreign-born residents, net change 2015 to 2024 | Net change in foreign-born residents | Count 2015 to count 2024. If arrivals are 25 or more: "About N a year moved here directly from another country (2020-24 average)." If under 25: "Arrivals directly from another country: too few to measure (2020-24)." Source: Census ACS, B05002, B07007. |
 | 2 | Median rent, 2024 | Median gross rent per month | Percent change since 2015, after inflation. Source: Census ACS, B25063. Inflation: BLS R-CPI-U-RS. |
 | 3 | Renters paying 30%+ of income on rent, 2024 | Share of renter households | Point change since 2015. Source: Census ACS, B25070. |
 
 ### Limits
 
 - ACS margins of error are pulled but not modeled.
+- Direct arrivals from another country under 25 a year show as "too few to measure" on the detail card. Each tract's margin of error is at least ±13, so smaller counts are mostly noise.
 - ACS 5-year figures are period estimates, not single-year snapshots.
 - Foreign-born is not the same as Latino. People born in Puerto Rico count as native-born.
 - Rankings are a screen for where to look first, not investment or lending advice.

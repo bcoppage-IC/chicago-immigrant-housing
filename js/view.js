@@ -298,7 +298,11 @@ export class DashboardView {
     const formatSignedDecimal = (val, digits = 1) => `${sign(val)}${Math.abs(val).toFixed(digits)}`;
 
     const box1Value = formatSignedInt(area.fbCountChange);
-    const box1Detail = `${area.fbCount2015.toLocaleString("en-US")} to ${area.fbCount2024.toLocaleString("en-US")} people. About ${area.arrivals2024.toLocaleString("en-US")} a year moved here from abroad (2020–24 average). Source: Census ACS, B05002, B07007.`;
+    const fbRange = `${area.fbCount2015.toLocaleString("en-US")} to ${area.fbCount2024.toLocaleString("en-US")} people.`;
+    const arrivalsText = area.arrivals2024 < 25
+      ? "Arrivals directly from another country: too few to measure (2020–24)."
+      : `About ${area.arrivals2024.toLocaleString("en-US")} a year moved here directly from another country (2020–24 average).`;
+    const box1Detail = `${fbRange} ${arrivalsText} Source: Census ACS, B05002, B07007.`;
 
     const box2Value = `$${area.medianRent2024.toLocaleString("en-US")}/mo`;
     const box2Detail = `${formatSignedDecimal(area.rentRealPctChange, 1)}% since 2015, after inflation. Source: Census ACS, B25063. Inflation: BLS R-CPI-U-RS.`;
@@ -321,7 +325,7 @@ export class DashboardView {
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
         <div class="bg-slate-50 p-3 rounded">
-          <div class="text-xs text-slate-500">Immigrant residents, change 2015 to 2024</div>
+          <div class="text-xs text-slate-500">Foreign-born residents, net change 2015 to 2024</div>
           <div class="text-lg font-bold text-slate-900 mt-0.5">${box1Value}</div>
           <div class="text-xs text-slate-600 mt-1">${box1Detail}</div>
         </div>
@@ -383,7 +387,7 @@ export class DashboardView {
       return `${sign(rounded)}${Math.abs(rounded).toLocaleString("en-US")}`;
     };
 
-    // Card 1: rent change in the 10 areas where immigrants grew most
+    // Card 1: rent change in the 10 areas where the foreign-born share grew most
     const { top10MedianRentChange, cityMedianRentChange } =
       this.repo.getTopGrowthRentComparison({
         excludeFlagged: this.state.excludeFlagged,
@@ -392,7 +396,7 @@ export class DashboardView {
     setText("kpi-top-growth-rent", formatPct(top10MedianRentChange));
     setText(
       "kpi-top-growth-rent-sub",
-      `Median rent change, 2015 to 2024, after inflation, in the 10 areas where immigrants grew most. City median: ${cityMedianText}.`
+      `Median rent change, 2015 to 2024, after inflation, in the 10 areas where the foreign-born share grew most. City median: ${cityMedianText}.`
     );
 
     // Cards 2 and 3: historic hubs
