@@ -101,9 +101,9 @@ export class DashboardView {
     }
 
     const updateWeightLabels = () => {
-      document.getElementById("val-growth").textContent = `${this.state.growthWeight}%`;
-      document.getElementById("val-rent").textContent = `${this.state.rentHeadroomWeight}%`;
-      document.getElementById("val-burden").textContent = `${this.state.affordabilityWeight}%`;
+      document.getElementById("val-growth").textContent = `${this.state.growthWeight}`;
+      document.getElementById("val-rent").textContent = `${this.state.rentHeadroomWeight}`;
+      document.getElementById("val-burden").textContent = `${this.state.affordabilityWeight}`;
     };
 
     const syncSliders = () => {
