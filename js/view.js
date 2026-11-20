@@ -442,11 +442,11 @@ export class DashboardView {
         const isSelected = this.selectedCaNum === caNum;
 
         return {
-          fillColor: getColor(rankedItem ? rankedItem.score : undefined, area),
+          fillColor: isSelected ? "#FBBF24" : getColor(rankedItem ? rankedItem.score : undefined, area),
           weight: isSelected ? 3 : 1,
           opacity: 1,
           color: isSelected ? "#0f172a" : "#ffffff",
-          fillOpacity: rankedItem ? 0.82 : 0.35,
+          fillOpacity: isSelected ? 0.9 : rankedItem ? 0.82 : 0.35,
         };
       },
       onEachFeature: (feature, layer) => {
